@@ -4,58 +4,42 @@ package bptree
 // in ascending key order.
 type Iterator struct {
 	next *node
+	i    int
 }
 
 // Iterator returns a stateful iterator that traverses the tree
 // in ascending key order.
 func (t *BPTree) Iterator() *Iterator {
-	next := t.root
-	// if next != nil {
-	// 	for next.left != nil {
-	// 		next = next.left
-	// 	}
-	// }
-
-	return &Iterator{next}
+	return &Iterator{t.leftmost, 0}
 }
 
 // HasNext returns true if there is a next element to retrive.
 func (it *Iterator) HasNext() bool {
-	return it.next != nil
+	return it.next != nil && it.i < it.next.keyNum
 }
 
 // Next returns a key and a value at the current position of the iteration
 // and advances the iterator.
 // Caution! Next panics if called on the nil element.
-func (it *Iterator) Next() (key, value []byte) {
+func (it *Iterator) Next() ([]byte, []byte) {
 	if !it.HasNext() {
 		// to sleep well
 		panic("there is no next node")
 	}
 
-	// current := it.next
-	// if it.next.right != nil {
-	// 	it.next = it.next.right
-	// 	for it.next.left != nil {
-	// 		it.next = it.next.left
-	// 	}
+	key, value := it.next.keys[it.i], it.next.pointers[it.i].asValue()
 
-	// 	return current.key, current.value
-	// }
+	it.i++
+	if it.i == it.next.keyNum {
+		nextPointer := it.next.lastPointer()
+		if nextPointer != nil {
+			it.next = nextPointer.asNode()
+		} else {
+			it.next = nil
+		}
 
-	// for {
-	// 	if it.next.parent == nil {
-	// 		it.next = nil
+		it.i = 0
+	}
 
-	// 		return current.key, current.value
-	// 	}
-	// 	if it.next.parent.left == it.next {
-	// 		it.next = it.next.parent
-
-	// 		return current.key, current.value
-	// 	}
-	// 	it.next = it.next.parent
-	// }
-
-	return nil, nil
+	return key, value
 }

@@ -2,6 +2,7 @@ package bptree
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"math/rand"
 	"reflect"
@@ -10,6 +11,16 @@ import (
 	"testing"
 	"time"
 )
+
+func TestOrderPanic(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("must panic, but did not")
+		}
+	}()
+
+	New(Order(2))
+}
 
 func Example() {
 	tree := New()
@@ -64,26 +75,28 @@ func TestNew(t *testing.T) {
 }
 
 func TestPutAndGet(t *testing.T) {
-	tree := New()
+	for order := 3; order <= len(treeCases); order++ {
+		tree := New(Order(order))
 
-	for _, c := range treeCases {
-		prev, exists := tree.Put([]byte{c.key}, []byte(c.value))
-		if prev != nil {
-			t.Fatalf("the key already exists %v", c.key)
-		}
-		if exists {
-			t.Fatalf("the key already exists %v", c.key)
-		}
-	}
-
-	for _, c := range treeCases {
-		value, ok := tree.Get([]byte{c.key})
-		if !ok {
-			t.Fatalf("failed to get value by key %d", c.key)
+		for _, c := range treeCases {
+			prev, exists := tree.Put([]byte{c.key}, []byte(c.value))
+			if prev != nil {
+				t.Fatalf("the key already exists %v", c.key)
+			}
+			if exists {
+				t.Fatalf("the key already exists %v", c.key)
+			}
 		}
 
-		if string(value) != c.value {
-			t.Fatalf("expected to get value %s fo key %d, but got %s", c.value, c.key, string(value))
+		for _, c := range treeCases {
+			value, ok := tree.Get([]byte{c.key})
+			if !ok {
+				t.Fatalf("failed to get value by key %d", c.key)
+			}
+
+			if string(value) != c.value {
+				t.Fatalf("expected to get value %s fo key %d, but got %s", c.value, c.key, string(value))
+			}
 		}
 	}
 }
@@ -228,34 +241,81 @@ func TestKeyOrder(t *testing.T) {
 	}
 }
 
-// func TestRedBlackTreeProperties(t *testing.T) {
-// 	tree := New()
-// 	n := 256
-// 	i := 0
-// 	for k := n; k > 0; k-- {
-// 		i++
-// 		tree.Put([]byte{byte(k)}, []byte{byte(k)})
-// 	}
+func TestPutAndGetRandomized(t *testing.T) {
+	r := rand.New(rand.NewSource(time.Now().Unix()))
+	size := 10000
+	keys := r.Perm(size)
 
-// 	if tree.root.color != black {
-// 		t.Fatal("tree root is not black")
-// 	}
+	for order := 3; order <= 7; order++ {
+		tree := New(Order(order))
 
-// 	if hasAdjacentRedNodes(tree.root) {
-// 		t.Fatal("tree has adjacent red nodes")
-// 	}
+		for i, k := range keys {
+			key := make([]byte, 4)
+			binary.LittleEndian.PutUint32(key, uint32(k))
+			value := make([]byte, 4)
+			binary.LittleEndian.PutUint32(value, uint32(i))
+			
+			prev, exists := tree.Put(key, value)
+			if prev != nil {
+				t.Fatalf("the key already exists %v", k)
+			}
+			if exists {
+				t.Fatalf("the key already exists %v", k)
+			}
+		}
 
-// 	h := height(tree.root)
-// 	max := int(math.Floor(2 * math.Log2(float64(n+1))))
-// 	if h > max {
-// 		t.Fatalf("max height property has been violated: h=%d > max=2*log2(n+1)=%d", h, max)
-// 	}
+		for i, k := range keys {
+			expectedValue := uint32(i)
+			key := make([]byte, 4)
+			binary.LittleEndian.PutUint32(key, uint32(k))
 
-// 	valid := checkBlackNodes(tree.root)
-// 	if !valid {
-// 		t.Fatal("black nodes count on each path from root to any leaf must match")
-// 	}
-// }
+			v, ok := tree.Get(key)
+			if !ok {
+				t.Fatalf("failed to get value by key %d, tree size = %d, order = %d", k, tree.Size(), order)
+			}
+
+			actualValue := binary.LittleEndian.Uint32(v)
+			if expectedValue != actualValue {
+				t.Fatalf("expected to get value %d fo key %d, but got %d", expectedValue, k, actualValue)
+			}
+		}
+	}
+
+	t.Fatal("fails periodically")
+}
+
+func TestDelete(t *testing.T) {
+	t.Fatal("implement")
+}
+
+func TestBPlusTreeProperties(t *testing.T) {
+	// tree := New()
+	// n := 256
+	// i := 0
+	// for k := n; k > 0; k-- {
+	// 	i++
+	// 	tree.Put([]byte{byte(k)}, []byte{byte(k)})
+	// }
+
+	// if tree.root.color != black {
+	// 	t.Fatal("tree root is not black")
+	// }
+
+	// if hasAdjacentRedNodes(tree.root) {
+	// 	t.Fatal("tree has adjacent red nodes")
+	// }
+
+	// h := height(tree.root)
+	// max := int(math.Floor(2 * math.Log2(float64(n+1))))
+	// if h > max {
+	// 	t.Fatalf("max height property has been violated: h=%d > max=2*log2(n+1)=%d", h, max)
+	// }
+
+	// valid := checkBlackNodes(tree.root)
+	// if !valid {
+	// 	t.Fatal("black nodes count on each path from root to any leaf must match")
+	// }
+}
 
 // func countBlackNodes(node *node, count int, counters *[]int) {
 // 	if node.left == nil && node.right == nil {
