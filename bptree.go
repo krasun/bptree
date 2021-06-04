@@ -223,9 +223,6 @@ func (t *BPTree) putIntoLeaf(n *node, k, v []byte) ([]byte, bool) {
 		n.pointers[insertPos] = &pointer{v}
 		// and update key num
 		n.keyNum++
-		t.size++
-
-		return nil, false
 	} else {
 		// if the node is full
 		parent := n.parent
@@ -250,9 +247,9 @@ func (t *BPTree) putIntoLeaf(n *node, k, v []byte) ([]byte, bool) {
 
 			parent = parent.parent
 		}
-
-		t.size++
 	}
+
+	t.size++
 
 	return nil, false
 }
