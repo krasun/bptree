@@ -68,6 +68,7 @@ func (p *pointer) overrideValue(newValue []byte) []byte {
 	return oldValue
 }
 
+// Option option configuration for B+ tree.
 type Option func(*BPTree)
 
 // Order sets the B+ tree order. The minimum order is 2.
@@ -81,7 +82,7 @@ func Order(order int) func(*BPTree) {
 	}
 }
 
-// Returns a new instance of the B+ tree.
+// New returns a new instance of the B+ tree.
 func New(options ...Option) *BPTree {
 	t := &BPTree{order: defaultOrder}
 
