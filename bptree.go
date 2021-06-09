@@ -171,19 +171,15 @@ func (t *BPTree) findLeaf(key []byte) *node {
 	current := t.root
 	for !current.leaf {
 		i := 0
-		for i = 0; i < current.keyNum; i++ {
-			k := current.keys[i]
-			if less(key, k) {
-				// position found
-				current = current.pointers[i].asNode()
+		for i < current.keyNum {
+			if less(key, current.keys[i]) {
 				break
+			} else {
+				i += 1
 			}
 		}
 
-		if !current.leaf && i == current.keyNum {
-			// reached the end
-			current = current.pointers[i].asNode()
-		}
+		current = current.pointers[i].asNode()
 	}
 
 	return current
@@ -331,22 +327,22 @@ func (t *BPTree) putIntoParentAndSplit(parent *node, k []byte, l, r *node) ([]by
 	}
 
 	middlePos := ceil(len(parent.keys), 2)
-
-	copy(right.keys, parent.keys[middlePos:])
-	copy(right.pointers, parent.pointers[middlePos:])
-	for _, p := range right.pointers {
-		if p != nil {
-			p.asNode().parent = right
-		}
+	copyFrom := middlePos
+	if insertPos < middlePos {
+		// since the elements will be shifted
+		copyFrom -= 1
 	}
+
+	copy(right.keys, parent.keys[copyFrom:])
+	copy(right.pointers, parent.pointers[copyFrom:])
 	// copy the pointer to the next node
-	right.keyNum = len(right.keys) - middlePos
+	right.keyNum = len(right.keys) - copyFrom
 
 	// the given node becomes the left node
 	left := parent
-	left.keyNum = middlePos
+	left.keyNum = copyFrom
 	// clean up keys and pointers
-	for i := len(left.keys) - 1; i >= middlePos; i-- {
+	for i := len(left.keys) - 1; i >= copyFrom; i-- {
 		left.keys[i] = nil
 		left.pointers[i+1] = nil
 	}
@@ -384,6 +380,18 @@ func (t *BPTree) putIntoParentAndSplit(parent *node, k []byte, l, r *node) ([]by
 	right.keys[right.keyNum-1] = nil
 	right.keyNum--
 
+	for _, p := range left.pointers {
+		if p != nil {
+			p.asNode().parent = left
+		}
+	}
+
+	for _, p := range right.pointers {
+		if p != nil {
+			p.asNode().parent = right
+		}
+	}
+
 	return middleKey, left, right
 }
 
@@ -402,20 +410,25 @@ func (t *BPTree) putIntoLeafAndSplit(n *node, insertPos int, k, v []byte) (*node
 	}
 
 	middlePos := ceil(len(n.keys), 2)
+	copyFrom := middlePos
+	if insertPos < middlePos {
+		// since the elements will be shifted
+		copyFrom -= 1
+	}
 
-	copy(right.keys, n.keys[middlePos:])
-	copy(right.pointers, n.pointers[middlePos:len(n.pointers)-1])
+	copy(right.keys, n.keys[copyFrom:])
+	copy(right.pointers, n.pointers[copyFrom:len(n.pointers)-1])
 
 	// copy the pointer to the next node
 	right.setLastPointer(n.lastPointer())
-	right.keyNum = len(right.keys) - middlePos
+	right.keyNum = len(right.keys) - copyFrom
 
 	// the given node becomes the left node
 	left := n
 	left.parent = nil
-	left.keyNum = middlePos
+	left.keyNum = copyFrom
 	// clean up keys and pointers
-	for i := len(left.keys) - 1; i >= middlePos; i-- {
+	for i := len(left.keys) - 1; i >= copyFrom; i-- {
 		left.keys[i] = nil
 		left.pointers[i] = nil
 	}
@@ -424,6 +437,7 @@ func (t *BPTree) putIntoLeafAndSplit(n *node, insertPos int, k, v []byte) (*node
 	insertNode := left
 	if insertPos >= middlePos {
 		insertNode = right
+		// normalize insert position
 		insertPos -= middlePos
 	}
 

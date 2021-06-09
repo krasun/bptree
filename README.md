@@ -67,7 +67,7 @@ import (
 )
 
 func main() {
-	tree := bptree.New()
+	tree := bptree.New(bptree.Order(3))
 
 	tree.Put([]byte("apple"), []byte("sweet"))
 	tree.Put([]byte("banana"), []byte("honey"))
@@ -120,27 +120,27 @@ m[[]byte{1}] // what do you expect to receive?
 
 So to make sure that this situation does not occur in the tree, the key is copied byte by byte.
 
-<!-- ## Benchmark
+## Benchmark
 
 Regular Go map is as twice faster for put and get than B+ tree. But if you 
-need to iterate over keys in sorted order, the picture is sligthly different: 
+need to iterate over keys in sorted order, the picture is slightly different: 
 
 ```
 $ go test -benchmem -bench .
 goos: darwin
 goarch: amd64
 pkg: github.com/krasun/bptree
-BenchmarkTreePut-8                     	     330	   3573752 ns/op	 1040040 B/op	   49902 allocs/op
-BenchmarkMapPut-8                      	     496	   2477226 ns/op	 1732586 B/op	   20151 allocs/op
-BenchmarkTreePutRandomized-8           	     260	   4394145 ns/op	 1040029 B/op	   49901 allocs/op
-BenchmarkMapPutRandomized-8            	     630	   1890784 ns/op	  981565 B/op	   20111 allocs/op
-BenchmarkMapGet-8                      	    1496	    768210 ns/op	   38880 B/op	    9900 allocs/op
-BenchmarkTreeGet-8                     	     723	   1604544 ns/op	   38880 B/op	    9900 allocs/op
-BenchmarkTreePutAndForEach-8           	     300	   4056864 ns/op	 1040043 B/op	   49903 allocs/op
-BenchmarkMapPutAndIterateAfterSort-8   	     202	   5559646 ns/op	 2558408 B/op	   20173 allocs/op
+BenchmarkTreePut-8                     	     177	   6379568 ns/op	 2825120 B/op	   99844 allocs/op
+BenchmarkMapPut-8                      	     517	   2537254 ns/op	 1732410 B/op	   20151 allocs/op
+BenchmarkTreePutRandomized-8           	     140	  10885305 ns/op	 1621450 B/op	   69407 allocs/op
+BenchmarkMapPutRandomized-8            	     453	   2599835 ns/op	  981421 B/op	   20110 allocs/op
+BenchmarkMapGet-8                      	    1197	    856502 ns/op	   38880 B/op	    9900 allocs/op
+BenchmarkTreeGet-8                     	     465	   3217380 ns/op	   38880 B/op	    9900 allocs/op
+BenchmarkTreePutAndForEach-8           	     133	   8896404 ns/op	 2825120 B/op	   99844 allocs/op
+BenchmarkMapPutAndIterateAfterSort-8   	     166	   6983623 ns/op	 2559120 B/op	   20175 allocs/op
 PASS
-ok  	github.com/krasun/bptree	12.096s
-``` -->
+ok  	github.com/krasun/bptree	14.489s
+```
 
 ## Tests
 
