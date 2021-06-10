@@ -31,7 +31,7 @@ func (it *Iterator) Next() ([]byte, []byte) {
 
 	it.i++
 	if it.i == it.next.keyNum {
-		nextPointer := it.next.lastPointer()
+		nextPointer := it.next.next()
 		if nextPointer != nil {
 			it.next = nextPointer.asNode()
 		} else {

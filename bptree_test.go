@@ -282,13 +282,54 @@ func TestPutAndGetRandomized(t *testing.T) {
 	}
 }
 
-// func TestDelete(t *testing.T) {
-// 	t.Fatal("implement")
-// }
+func TestDelete(t *testing.T) {
+	tree := New()
 
-// func TestDeletePlusPut(t *testing.T) {
-// 	t.Fatal("implement")
-// }
+	tree.Put([]byte{1}, []byte{1})
+	tree.Put([]byte{2}, []byte{2})
+	tree.Put([]byte{3}, []byte{3})
+	tree.Put([]byte{4}, []byte{4})
+	tree.Put([]byte{5}, []byte{5})
+	tree.Put([]byte{6}, []byte{6})
+	tree.Put([]byte{7}, []byte{7})
+	tree.Put([]byte{8}, []byte{8})
+	tree.Put([]byte{9}, []byte{9})
+	tree.Put([]byte{10}, []byte{10})
+	tree.Put([]byte{11}, []byte{11})
+	tree.Put([]byte{12}, []byte{12})
+
+	tree.Delete([]byte{7})
+	// tree.Delete([]byte{2})
+	// tree.Delete([]byte{3})
+	// tree.Delete([]byte{4})
+	// tree.Delete([]byte{12})
+	// tree.Delete([]byte{11})
+	// tree.Delete([]byte{10})
+	// tree.Delete([]byte{9})
+
+	fmt.Print("some")
+
+	// expectedSize = len(treeCases)
+	// for _, c := range treeCases {
+	// 	value, deleted := tree.Delete([]byte{c.key})
+	// 	expectedSize--
+
+	// 	if !deleted {
+	// 		t.Fatalf("key %d is not deleted", c.key)
+	// 	}
+	// 	if value != nil {
+	// 		t.Fatalf("value for key %d is not nil: %v", c.key, value)
+	// 	}
+	// 	if expectedSize != tree.Size() {
+	// 		t.Fatalf("the expected size != actual: %d != %d", expectedSize, tree.Size())
+	// 	}
+	// }
+
+	// TODO: test for larger orders
+	// TODO: test iterator after delete 
+	// TODO: test randomized delete 
+	// TODO: test tree properties on deletion 
+}
 
 func TestBPlusTreeProperties(t *testing.T) {
 	// tree := New()
