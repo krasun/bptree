@@ -283,22 +283,15 @@ func TestPutAndGetRandomized(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	tree := New()
+	tree := New(Order(3))
 
 	tree.Put([]byte{1}, []byte{1})
-	tree.Put([]byte{2}, []byte{2})
+	tree.Put([]byte{5}, []byte{5})
 	tree.Put([]byte{3}, []byte{3})
 	tree.Put([]byte{4}, []byte{4})
-	tree.Put([]byte{5}, []byte{5})
 	tree.Put([]byte{6}, []byte{6})
-	tree.Put([]byte{7}, []byte{7})
-	tree.Put([]byte{8}, []byte{8})
-	tree.Put([]byte{9}, []byte{9})
-	tree.Put([]byte{10}, []byte{10})
-	tree.Put([]byte{11}, []byte{11})
-	tree.Put([]byte{12}, []byte{12})
 
-	tree.Delete([]byte{7})
+	tree.Delete([]byte{1})
 	// tree.Delete([]byte{2})
 	// tree.Delete([]byte{3})
 	// tree.Delete([]byte{4})
@@ -326,9 +319,9 @@ func TestDelete(t *testing.T) {
 	// }
 
 	// TODO: test for larger orders
-	// TODO: test iterator after delete 
-	// TODO: test randomized delete 
-	// TODO: test tree properties on deletion 
+	// TODO: test iterator after delete
+	// TODO: test randomized delete
+	// TODO: test tree properties on deletion
 }
 
 func TestBPlusTreeProperties(t *testing.T) {

@@ -41,8 +41,6 @@ type BPTree struct {
 
 	// minimum allowed number of keys in the tree ceil(order/2)-1
 	minKeyNum int
-	// minimum allowed number of children/pointers ceil(order/2)
-	minPointerNum int
 }
 
 // New returns a new instance of the B+ tree.
@@ -53,8 +51,7 @@ func New(options ...Option) *BPTree {
 		option(t)
 	}
 
-	t.minPointerNum = ceil(t.order, 2)
-	t.minKeyNum = t.minPointerNum - 1
+	t.minKeyNum = ceil(t.order, 2) - 1
 
 	return t
 }
@@ -408,61 +405,67 @@ func (t *BPTree) Delete(key []byte) ([]byte, bool) {
 		return nil, false
 	}
 
-	value, deleted := t.deleteFromNode(leaf, key)
+	value, deleted := t.deleteAtLeafAndRebalance(leaf, key)
 	if !deleted {
 		return nil, false
 	}
+
+	// TODO: find internal node/parent node and remove the key from it
+
+	// parent := leaf.parent
+	// for parent != nil {
+	// 	// TODO: implement delete from indices
+	// 	t.deleteAtInternalAndRebalance(parent, key)
+	// 	parent = parent.parent
+	// }
 
 	t.size--
 
 	return value, true
 }
 
-// deleteFromNode delete the key from the given node.
-func (t *BPTree) deleteFromNode(n *node, key []byte) ([]byte, bool) {
+// deleteAtInternalAndRebalance deletes the key from the given node and rebalances it.
+func (t *BPTree) deleteAtInternalAndRebalance(n *node, key []byte) {
+
+}
+
+// deleteAtLeafAndRebalance deletes the key from the given node and rebalances it.
+func (t *BPTree) deleteAtLeafAndRebalance(n *node, key []byte) ([]byte, bool) {
+	keyPos := n.keyPosition(key)
+	if keyPos == -1 {
+		return nil, false
+	}
+
+	value := n.pointers[keyPos].asValue()
+
 	leafPointerPos := n.parent.pointerPositionOf(n)
 	leafKeyPosInParent := leafPointerPos - 1
 	if leafKeyPosInParent < 0 {
 		leafKeyPosInParent = 0
 	}
 
-	keyPos := 0
-	var value []byte
-	for ; keyPos < n.keyNum; keyPos++ {
-		if compare(key, n.keys[keyPos]) == 0 {
-			value = n.pointers[keyPos].asValue()
-			break
-		}
-
-		if keyPos == n.keyNum-1 {
-			// reached the end, but the key is not found
-			return nil, false
-		}
-	}
-
 	n.deleteAt(keyPos)
 
 	parent := n.parent
 	if parent == nil {
-		// remove from root
-		panic("remove from root not implemented")
-		// if n.keyNum == 0 {
-		// 	t.root = nil
-		// }
+		// remove from root (as leaf)
+		if n.keyNum == 0 {
+			t.root = nil
+		}
 
-		// t.size--
-
-		// return deletedValue, true
+		return value, true
 	}
 
 	if n.keyNum < t.minKeyNum {
-		// try merge nodes for the leaf
+		// try redistribute nodes for the leaf
 
 		// check left sibling
 		leftSibPos := leafPointerPos - 1
 		borrowFromRight := true
 		if leftSibPos >= 0 {
-			// merge with left sibling
+			// if left sibling exists 
+
+			// borrow from left sibling
 			leftSib := parent.pointers[leftSibPos].asNode()
 			if leftSib.keyNum > t.minKeyNum {
 				// borrow from the left sibling
@@ -476,7 +479,10 @@ func (t *BPTree) deleteFromNode(n *node, key []byte) ([]byte, bool) {
 		}
 
 		rightSibPos := leafPointerPos + 1
+		tryMerge := true
 		if borrowFromRight && rightSibPos < parent.keyNum+1 {
+			// if right sibling exists 
+
 			rightSib := parent.pointers[rightSibPos].asNode()
 			if rightSib.keyNum > t.minKeyNum {
 				// borrow from the right sibling
@@ -484,24 +490,24 @@ func (t *BPTree) deleteFromNode(n *node, key []byte) ([]byte, bool) {
 				n.append(k, v)
 				rightSib.deleteAt(0)
 				parent.keys[leafKeyPosInParent] = rightSib.keys[0]
+
+				tryMerge = false
 			}
 		}
-	}
 
-	if n.keyNum == 0 {
-		// failed to borrow
+		if tryMerge {
+			// remove from the parent
+			parent.deleteAt(leafKeyPosInParent)
 
-		// remove from the parent
-		parent.deleteAt(leafKeyPosInParent)
+			if parent.keyNum < t.minKeyNum {
+				fmt.Printf("parent.keyNum = %d, t.minKeyNum=%d\n", parent.keyNum, t.minKeyNum)
+				// TODO: what to do with pointers, how to check them
+				panic("not implemented parent.keyNum < t.minKeyNum")
+			}
 
-		if parent.keyNum < t.minKeyNum {
-			fmt.Printf("parent.keyNum = %d, t.minKeyNum=%d\n", parent.keyNum, t.minKeyNum)
-			// TODO: what to do with pointers, how to check them
-			panic("not implemented parent.keyNum < t.minKeyNum")
-		}
-
-		if n == t.leftmost && parent.keyNum > 0 {
-			t.leftmost = parent.pointers[0].asNode()
+			if n == t.leftmost && parent.keyNum > 0 {
+				t.leftmost = parent.pointers[0].asNode()
+			}
 		}
 	}
 
@@ -539,6 +545,23 @@ type node struct {
 	// In the leaf node, the last pointers element points to
 	// the next leaf node.
 	pointers []*pointer
+}
+
+//  keyPosition returns the position of the key, but -1 if it is not present.
+func (n *node) keyPosition(key []byte) int {
+	keyPosition := 0
+	for ; keyPosition < n.keyNum; keyPosition++ {
+		if compare(key, n.keys[keyPosition]) == 0 {
+			return keyPosition
+		}
+
+		if keyPosition == n.keyNum-1 {
+			// reached the end, but the key is not found
+			return -1
+		}
+	}
+
+	return -1
 }
 
 // append apppends key and the pointer to the node
