@@ -126,20 +126,20 @@ Regular Go map is as twice faster for put and get than B+ tree. But if you
 need to iterate over keys in sorted order, the picture is slightly different: 
 
 ```
-$ go test -benchmem -bench .
+$ go test -benchmem -bench .                                                                                            127 ↵
 goos: darwin
 goarch: amd64
 pkg: github.com/krasun/bptree
-BenchmarkTreePut-8                     	     177	   6379568 ns/op	 2825120 B/op	   99844 allocs/op
-BenchmarkMapPut-8                      	     517	   2537254 ns/op	 1732410 B/op	   20151 allocs/op
-BenchmarkTreePutRandomized-8           	     140	  10885305 ns/op	 1621450 B/op	   69407 allocs/op
-BenchmarkMapPutRandomized-8            	     453	   2599835 ns/op	  981421 B/op	   20110 allocs/op
-BenchmarkMapGet-8                      	    1197	    856502 ns/op	   38880 B/op	    9900 allocs/op
-BenchmarkTreeGet-8                     	     465	   3217380 ns/op	   38880 B/op	    9900 allocs/op
-BenchmarkTreePutAndForEach-8           	     133	   8896404 ns/op	 2825120 B/op	   99844 allocs/op
-BenchmarkMapPutAndIterateAfterSort-8   	     166	   6983623 ns/op	 2559120 B/op	   20175 allocs/op
+BenchmarkTreePut-8                     	     187	   6423171 ns/op	 2825134 B/op	   99844 allocs/op
+BenchmarkMapPut-8                      	     525	   2736062 ns/op	 1732158 B/op	   20150 allocs/op
+BenchmarkTreePutRandomized-8           	     177	   6745088 ns/op	 1622519 B/op	   69431 allocs/op
+BenchmarkMapPutRandomized-8            	     612	   1944303 ns/op	  981396 B/op	   20111 allocs/op
+BenchmarkMapGet-8                      	    1484	    704045 ns/op	   38880 B/op	    9900 allocs/op
+BenchmarkTreeGet-8                     	     505	   2184212 ns/op	   38880 B/op	    9900 allocs/op
+BenchmarkTreePutAndForEach-8           	     181	   6958273 ns/op	 2825133 B/op	   99844 allocs/op
+BenchmarkMapPutAndIterateAfterSort-8   	     205	   5473439 ns/op	 2558078 B/op	   20172 allocs/op
 PASS
-ok  	github.com/krasun/bptree	14.489s
+ok  	github.com/krasun/bptree	15.460s
 ```
 
 ## Tests
@@ -148,7 +148,7 @@ Run tests with:
 
 ```
 $ go test -cover .
-ok  	github.com/krasun/bptree	0.245s	coverage: 100.0% of statements
+ok  	github.com/krasun/bptree	0.468s	coverage: 100.0% of statements
 ```
 
 ## License 

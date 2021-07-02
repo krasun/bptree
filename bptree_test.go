@@ -75,7 +75,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestPutAndGet(t *testing.T) {
-	for order := 3; order <= len(treeCases); order++ {
+	for order := 3; order <= 7; order++ {
 		tree := New(Order(order))
 
 		for _, c := range treeCases {
@@ -210,7 +210,7 @@ func TestForEach(t *testing.T) {
 	})
 
 	if !reflect.DeepEqual(expected, actual) {
-		t.Fatalf("%s != %s", expected, actual)
+		t.Fatalf("%v != %v", expected, actual)
 	}
 }
 
@@ -282,137 +282,176 @@ func TestPutAndGetRandomized(t *testing.T) {
 	}
 }
 
-func TestDelete(t *testing.T) {
+func TestPutAndDeleteRandomized(t *testing.T) {
+	r := rand.New(rand.NewSource(time.Now().Unix()))
+	size := 10000
+	keys := r.Perm(size)
+
+	for order := 3; order <= 7; order++ {
+		tree := New(Order(order))
+
+		for i, k := range keys {
+			key := make([]byte, 4)
+			binary.LittleEndian.PutUint32(key, uint32(k))
+			value := make([]byte, 4)
+			binary.LittleEndian.PutUint32(value, uint32(i))
+
+			prev, exists := tree.Put(key, value)
+			if prev != nil {
+				t.Fatalf("the key already exists %v", k)
+			}
+			if exists {
+				t.Fatalf("the key already exists %v", k)
+			}
+		}
+
+		for i, k := range keys {
+			expectedValue := uint32(i)
+			key := make([]byte, 4)
+			binary.LittleEndian.PutUint32(key, uint32(k))
+
+			v, ok := tree.Delete(key)
+			if !ok {
+				t.Fatalf("failed to delete value by key %d, tree size = %d, order = %d", k, tree.Size(), order)
+			}
+
+			actualValue := binary.LittleEndian.Uint32(v)
+			if expectedValue != actualValue {
+				t.Fatalf("expected to delete value %d by key %d, and got %d", expectedValue, k, actualValue)
+			}
+		}
+	}
+}
+
+func TestDeleteFromEmptyTree(t *testing.T) {
 	tree := New(Order(3))
 
-	tree.Put([]byte{1}, []byte{1})
-	tree.Put([]byte{5}, []byte{5})
+	value, deleted := tree.Delete([]byte{1})
+	if deleted {
+		t.Fatalf("key %d is deleted, but should not, order %d", 1, 3)
+	}
+	if value != nil {
+		t.Fatalf("value for key %d is not nil: %v", 1, value)
+	}
+}
+
+func TestDeleteNonExistentElement(t *testing.T) {
+	tree := New(Order(3))
+
+	tree.Put([]byte{1}, []byte{2})
+	tree.Put([]byte{2}, []byte{2})
 	tree.Put([]byte{3}, []byte{3})
-	tree.Put([]byte{4}, []byte{4})
-	tree.Put([]byte{6}, []byte{6})
 
-	tree.Delete([]byte{1})
-	// tree.Delete([]byte{2})
-	// tree.Delete([]byte{3})
-	// tree.Delete([]byte{4})
-	// tree.Delete([]byte{12})
-	// tree.Delete([]byte{11})
-	// tree.Delete([]byte{10})
-	// tree.Delete([]byte{9})
-
-	fmt.Print("some")
-
-	// expectedSize = len(treeCases)
-	// for _, c := range treeCases {
-	// 	value, deleted := tree.Delete([]byte{c.key})
-	// 	expectedSize--
-
-	// 	if !deleted {
-	// 		t.Fatalf("key %d is not deleted", c.key)
-	// 	}
-	// 	if value != nil {
-	// 		t.Fatalf("value for key %d is not nil: %v", c.key, value)
-	// 	}
-	// 	if expectedSize != tree.Size() {
-	// 		t.Fatalf("the expected size != actual: %d != %d", expectedSize, tree.Size())
-	// 	}
-	// }
-
-	// TODO: test for larger orders
-	// TODO: test iterator after delete
-	// TODO: test randomized delete
-	// TODO: test tree properties on deletion
+	value, deleted := tree.Delete([]byte{4})
+	if deleted {
+		t.Fatalf("key %d is deleted, but should not, order %d", 4, 3)
+	}
+	if value != nil {
+		t.Fatalf("value for key %d is not nil: %v", 4, value)
+	}
 }
 
-func TestBPlusTreeProperties(t *testing.T) {
-	// tree := New()
-	// n := 256
-	// i := 0
-	// for k := n; k > 0; k-- {
-	// 	i++
-	// 	tree.Put([]byte{byte(k)}, []byte{byte(k)})
-	// }
+func TestDeleteMergingThreeTimes(t *testing.T) {
+	keys := []byte{7, 8, 4, 3, 2, 6, 11, 9, 10, 1, 12, 0, 5}
 
-	// if tree.root.color != black {
-	// 	t.Fatal("tree root is not black")
-	// }
+	tree := New(Order(3))
+	for _, v := range keys {
+		tree.Put([]byte{v}, []byte{v})
+	}
 
-	// if hasAdjacentRedNodes(tree.root) {
-	// 	t.Fatal("tree has adjacent red nodes")
-	// }
-
-	// h := height(tree.root)
-	// max := int(math.Floor(2 * math.Log2(float64(n+1))))
-	// if h > max {
-	// 	t.Fatalf("max height property has been violated: h=%d > max=2*log2(n+1)=%d", h, max)
-	// }
-
-	// valid := checkBlackNodes(tree.root)
-	// if !valid {
-	// 	t.Fatal("black nodes count on each path from root to any leaf must match")
-	// }
+	for _, k := range keys {
+		value, deleted := tree.Delete([]byte{k})
+		if !deleted {
+			t.Fatalf("key %d is not deleted, order %d", k, 3)
+		}
+		if value == nil {
+			t.Fatalf("value for key %d is nil: %v", k, value)
+		}
+	}
 }
 
-// func countBlackNodes(node *node, count int, counters *[]int) {
-// 	if node.left == nil && node.right == nil {
-// 		*counters = append(*counters, count)
-// 	}
+func TestDelete(t *testing.T) {
+	for order := 3; order <= 7; order++ {
+		tree := New(Order(order))
+		for _, c := range treeCases {
+			tree.Put([]byte{c.key}, []byte(c.value))
+		}
 
-// 	if node.left != nil {
-// 		newCount := count
-// 		if node.left.color == black {
-// 			newCount++
-// 		}
+		expectedSize := len(treeCases)
+		for _, c := range treeCases {
+			value, deleted := tree.Delete([]byte{c.key})
+			expectedSize--
 
-// 		countBlackNodes(node.left, newCount, counters)
-// 	}
+			if !deleted {
+				t.Fatalf("key %d is not deleted, order %d", c.key, order)
+			}
+			if value == nil {
+				t.Fatalf("value for key %d is nil: %v", c.key, value)
+			}
+			if expectedSize != tree.Size() {
+				t.Fatalf("the expected size != actual: %d != %d", expectedSize, tree.Size())
+			}
+		}
+	}
+}
 
-// 	if node.right != nil {
-// 		newCount := count
-// 		if node.right.color == black {
-// 			newCount++
-// 		}
+func TestForEachAfterDeletion(t *testing.T) {
+	keys := []byte{7, 8, 4, 3, 2, 6, 11, 9, 10, 1, 12, 0, 5}
 
-// 		countBlackNodes(node.right, newCount, counters)
-// 	}
-// }
+	tree := New(Order(3))
+	for _, v := range keys {
+		tree.Put([]byte{v}, []byte{v})
+	}
 
-// func checkBlackNodes(node *node) bool {
-// 	if node == nil {
-// 		return true
-// 	}
+	for i, k := range keys {
+		value, deleted := tree.Delete([]byte{k})
+		if !deleted {
+			t.Fatalf("key %d is not deleted, order %d", k, 3)
+		}
+		if value == nil {
+			t.Fatalf("value for key %d is nil: %v", k, value)
+		}
 
-// 	counters := make([]int, 0)
-// 	countBlackNodes(node, 0, &counters)
+		actual := make([]byte, 0)
+		tree.ForEach(func(key []byte, value []byte) {
+			actual = append(actual, key...)
+		})
 
-// 	prev := -1
-// 	for _, count := range counters {
-// 		if prev != -1 && count != prev {
-// 			return false
-// 		}
-// 	}
+		isSorted := sort.SliceIsSorted(actual, func(i, j int) bool {
+			return actual[i] < actual[j]
+		})
+		if !isSorted {
+			t.Fatalf("each does not traverse in sorted order, produced result: %s", actual)
+		}
 
-// 	return true
-// }
+		expected := make([]byte, 0)
+		for j, k := range keys {
+			if j > i {
+				expected = append(expected, k)
+			}
+		}
+		sort.Slice(expected, func(i, j int) bool {
+			return expected[i] < expected[j]
+		})
 
-// func hasAdjacentRedNodes(node *node) bool {
-// 	return node.parent != nil && node.parent.color == red && node.color == red
-// }
+		if !reflect.DeepEqual(expected, actual) {
+			t.Fatalf("%v != %v for key %d (%d)", expected, actual, k, i)
+		}
+	}
+}
 
-// func height(node *node) int {
-// 	if node == nil {
-// 		return 0
-// 	}
+func TestNonExistentPointerPositionOf(t *testing.T) {
+	tree := New(Order(3))
 
-// 	l := height(node.left)
-// 	r := height(node.right)
+	tree.Put([]byte{1}, []byte{2})
+	tree.Put([]byte{2}, []byte{2})
+	tree.Put([]byte{3}, []byte{3})
 
-// 	if l > r {
-// 		return l + 1
-// 	}
-
-// 	return r + 1
-// }
+	actual := tree.root.pointerPositionOf(tree.root)
+	if actual != -1 {
+		t.Fatalf("should not locate root in the root, but found it")
+	}
+}
 
 const benchmarkKeyNum = 10000
 
