@@ -324,8 +324,6 @@ func (t *BPTree) putIntoParentAndSplit(parent *node, k []byte, l, r *node) ([]by
 	right.keyNum--
 
 	// update the pointers
-	// TODO: update only changed pointers, because for large branching factors
-	// the performance will degrade
 	for _, p := range left.pointers {
 		if p != nil {
 			p.asNode().parent = left
@@ -622,7 +620,6 @@ func (t *BPTree) rebalanceParentNode(n *node) {
 		parent.deleteAt(keyPositionInParent, rightSiblingPosition)
 	}
 
-	// TODO: remove recursion if necessary
 	t.rebalanceParentNode(parent)
 }
 
