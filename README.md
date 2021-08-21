@@ -4,7 +4,6 @@
 [![codecov](https://codecov.io/gh/krasun/bptree/branch/main/graph/badge.svg?token=8NU6LR4FQD)](https://codecov.io/gh/krasun/bptree)
 [![Go Report Card](https://goreportcard.com/badge/github.com/krasun/bptree)](https://goreportcard.com/report/github.com/krasun/bptree)
 [![GoDoc](https://godoc.org/https://godoc.org/github.com/krasun/bptree?status.svg)](https://godoc.org/github.com/krasun/bptree)
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fkrasun%2Fbptree.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fkrasun%2Fbptree?ref=badge_shield)
 
 An in-memory [B+ tree](https://en.wikipedia.org/wiki/B%2B_tree) implementation for Go with byte-slice keys and values. 
 
