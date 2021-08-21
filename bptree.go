@@ -2,6 +2,7 @@ package bptree
 
 import (
 	"bytes"
+	"fmt"
 )
 
 const (
@@ -9,16 +10,18 @@ const (
 )
 
 // Option option configuration for B+ tree.
-type Option func(*BPTree)
+type Option func(*BPTree) error
 
 // Order sets the B+ tree order. The minimum order is 2.
-func Order(order int) func(*BPTree) {
-	if order < 3 {
-		panic("order must be >= 3")
-	}
+func Order(order int) func(*BPTree) error {
+	return func(t *BPTree) error {
+		if order < 3 {
+			return fmt.Errorf("order must be >= 3")
+		}
 
-	return func(t *BPTree) {
 		t.order = order
+
+		return nil
 	}
 }
 
@@ -43,16 +46,19 @@ type BPTree struct {
 }
 
 // New returns a new instance of the B+ tree.
-func New(options ...Option) *BPTree {
+func New(options ...Option) (*BPTree, error) {
 	t := &BPTree{order: defaultOrder}
 
 	for _, option := range options {
-		option(t)
+		err := option(t)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	t.minKeyNum = ceil(t.order, 2) - 1
 
-	return t
+	return t, nil
 }
 
 // Get returns a value by the key. The second return

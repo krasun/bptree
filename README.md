@@ -30,7 +30,11 @@ import (
 )
 
 func main() {
-	tree := bptree.New()
+	tree, err := bptree.New()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+        os.Exit(1)
+	}
 
 	tree.Put([]byte("apple"), []byte("sweet"))
 	tree.Put([]byte("banana"), []byte("honey"))
@@ -67,7 +71,11 @@ import (
 )
 
 func main() {
-	tree := bptree.New(bptree.Order(3))
+	tree, err := bptree.New(bptree.Order(3))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+        os.Exit(1)
+	}
 
 	tree.Put([]byte("apple"), []byte("sweet"))
 	tree.Put([]byte("banana"), []byte("honey"))

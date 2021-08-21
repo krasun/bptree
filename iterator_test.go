@@ -8,7 +8,7 @@ import (
 )
 
 func ExampleIterator() {
-	tree := New()
+	tree, _ := New()
 
 	tree.Put([]byte("apple"), []byte("sweet"))
 	tree.Put([]byte("banana"), []byte("honey"))
@@ -54,7 +54,7 @@ var iteratorCases = []struct {
 }
 
 func TestIterator(t *testing.T) {
-	tree := New()
+	tree, _ := New()
 	for _, c := range iteratorCases {
 		tree.Put([]byte{c.key}, []byte(c.value))
 	}
@@ -86,7 +86,7 @@ func TestIterator(t *testing.T) {
 }
 
 func TestIteratorForEmptyTree(t *testing.T) {
-	tree := New()
+	tree, _ := New()
 
 	for it := tree.Iterator(); it.HasNext(); {
 		t.Fatal("call is not expected")
@@ -100,7 +100,7 @@ func TestIteratorNextPanicForEmptyTree(t *testing.T) {
 		}
 	}()
 
-	tree := New()
+	tree, _ := New()
 
 	tree.Iterator().Next()
 }
@@ -112,7 +112,7 @@ func TestIteratorNextPanicAfterIteration(t *testing.T) {
 		}
 	}()
 
-	tree := New()
+	tree, _ := New()
 	tree.Put([]byte{1}, nil)
 
 	it := tree.Iterator()

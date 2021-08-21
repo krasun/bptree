@@ -12,18 +12,15 @@ import (
 	"time"
 )
 
-func TestOrderPanic(t *testing.T) {
-	defer func() {
-		if r := recover(); r == nil {
-			t.Errorf("must panic, but did not")
-		}
-	}()
-
-	New(Order(2))
+func TestOrderError(t *testing.T) {
+	_, err := New(Order(2))
+	if err == nil {
+		t.Fatal("must return an error, but it does not")
+	}
 }
 
 func Example() {
-	tree := New()
+	tree, _ := New()
 
 	tree.Put([]byte("apple"), []byte("sweet"))
 	tree.Put([]byte("banana"), []byte("honey"))
@@ -68,7 +65,7 @@ var treeCases = []struct {
 }
 
 func TestNew(t *testing.T) {
-	tree := New()
+	tree, _ := New()
 	if tree == nil {
 		t.Fatal("expected new *BPTree instance, but got nil")
 	}
@@ -76,7 +73,7 @@ func TestNew(t *testing.T) {
 
 func TestPutAndGet(t *testing.T) {
 	for order := 3; order <= 7; order++ {
-		tree := New(Order(order))
+		tree, _ := New(Order(order))
 
 		for _, c := range treeCases {
 			prev, exists := tree.Put([]byte{c.key}, []byte(c.value))
@@ -102,7 +99,7 @@ func TestPutAndGet(t *testing.T) {
 }
 
 func TestSize(t *testing.T) {
-	tree := New()
+	tree, _ := New()
 
 	expected := 0
 	for _, c := range treeCases {
@@ -116,7 +113,7 @@ func TestSize(t *testing.T) {
 }
 
 func TestNil(t *testing.T) {
-	tree := New()
+	tree, _ := New()
 
 	tree.Put(nil, []byte{1})
 
@@ -127,7 +124,7 @@ func TestNil(t *testing.T) {
 }
 
 func TestPutOverrides(t *testing.T) {
-	tree := New()
+	tree, _ := New()
 
 	prev, exists := tree.Put([]byte{1}, []byte{1})
 	if prev != nil {
@@ -156,7 +153,7 @@ func TestPutOverrides(t *testing.T) {
 }
 
 func TestGetForNonExistentValue(t *testing.T) {
-	tree := New()
+	tree, _ := New()
 
 	for _, c := range treeCases {
 		tree.Put([]byte{c.key}, []byte(c.value))
@@ -172,7 +169,7 @@ func TestGetForNonExistentValue(t *testing.T) {
 }
 
 func TestGetForEmptyTree(t *testing.T) {
-	tree := New()
+	tree, _ := New()
 
 	value, ok := tree.Get([]byte{1})
 	if value != nil {
@@ -184,7 +181,7 @@ func TestGetForEmptyTree(t *testing.T) {
 }
 
 func TestForEach(t *testing.T) {
-	tree := New()
+	tree, _ := New()
 	for _, c := range treeCases {
 		tree.Put([]byte{c.key}, []byte(c.value))
 	}
@@ -215,7 +212,7 @@ func TestForEach(t *testing.T) {
 }
 
 func TestForEachForEmptyTree(t *testing.T) {
-	tree := New()
+	tree, _ := New()
 
 	tree.ForEach(func(key []byte, value []byte) {
 		t.Fatal("call is not expected")
@@ -223,7 +220,7 @@ func TestForEachForEmptyTree(t *testing.T) {
 }
 
 func TestKeyOrder(t *testing.T) {
-	tree := New()
+	tree, _ := New()
 	for _, c := range treeCases {
 		tree.Put([]byte{c.key}, []byte(c.value))
 	}
@@ -247,7 +244,7 @@ func TestPutAndGetRandomized(t *testing.T) {
 	keys := r.Perm(size)
 
 	for order := 3; order <= 7; order++ {
-		tree := New(Order(order))
+		tree, _ := New(Order(order))
 
 		for i, k := range keys {
 			key := make([]byte, 4)
@@ -288,7 +285,7 @@ func TestPutAndDeleteRandomized(t *testing.T) {
 	keys := r.Perm(size)
 
 	for order := 3; order <= 7; order++ {
-		tree := New(Order(order))
+		tree, _ := New(Order(order))
 
 		for i, k := range keys {
 			key := make([]byte, 4)
@@ -324,7 +321,7 @@ func TestPutAndDeleteRandomized(t *testing.T) {
 }
 
 func TestDeleteFromEmptyTree(t *testing.T) {
-	tree := New(Order(3))
+	tree, _ := New(Order(3))
 
 	value, deleted := tree.Delete([]byte{1})
 	if deleted {
@@ -336,7 +333,7 @@ func TestDeleteFromEmptyTree(t *testing.T) {
 }
 
 func TestDeleteNonExistentElement(t *testing.T) {
-	tree := New(Order(3))
+	tree, _ := New(Order(3))
 
 	tree.Put([]byte{1}, []byte{2})
 	tree.Put([]byte{2}, []byte{2})
@@ -354,7 +351,7 @@ func TestDeleteNonExistentElement(t *testing.T) {
 func TestDeleteMergingThreeTimes(t *testing.T) {
 	keys := []byte{7, 8, 4, 3, 2, 6, 11, 9, 10, 1, 12, 0, 5}
 
-	tree := New(Order(3))
+	tree, _ := New(Order(3))
 	for _, v := range keys {
 		tree.Put([]byte{v}, []byte{v})
 	}
@@ -372,7 +369,7 @@ func TestDeleteMergingThreeTimes(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	for order := 3; order <= 7; order++ {
-		tree := New(Order(order))
+		tree, _ := New(Order(order))
 		for _, c := range treeCases {
 			tree.Put([]byte{c.key}, []byte(c.value))
 		}
@@ -398,7 +395,7 @@ func TestDelete(t *testing.T) {
 func TestForEachAfterDeletion(t *testing.T) {
 	keys := []byte{7, 8, 4, 3, 2, 6, 11, 9, 10, 1, 12, 0, 5}
 
-	tree := New(Order(3))
+	tree, _ := New(Order(3))
 	for _, v := range keys {
 		tree.Put([]byte{v}, []byte{v})
 	}
@@ -441,7 +438,7 @@ func TestForEachAfterDeletion(t *testing.T) {
 }
 
 func TestNonExistentPointerPositionOf(t *testing.T) {
-	tree := New(Order(3))
+	tree, _ := New(Order(3))
 
 	tree.Put([]byte{1}, []byte{2})
 	tree.Put([]byte{2}, []byte{2})
@@ -464,7 +461,7 @@ var BenchmarkMap map[string][]byte
 
 func BenchmarkTreePut(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		BenchmarkTree = New()
+		BenchmarkTree, _ = New()
 
 		for k := benchmarkKeyNum; k > 0; k-- {
 			key := strconv.Itoa(k)
@@ -488,7 +485,7 @@ func BenchmarkTreePutRandomized(b *testing.B) {
 	rand.Seed(time.Now().UnixNano())
 
 	for n := 0; n < b.N; n++ {
-		BenchmarkTree = New()
+		BenchmarkTree, _ = New()
 
 		for k := benchmarkKeyNum; k > 0; k-- {
 			key := strconv.Itoa(rand.Intn(benchmarkKeyNum))
@@ -529,7 +526,7 @@ func BenchmarkMapGet(b *testing.B) {
 }
 
 func BenchmarkTreeGet(b *testing.B) {
-	BenchmarkTree = New()
+	BenchmarkTree, _ = New()
 	for k := benchmarkKeyNum; k > 0; k-- {
 		key := strconv.Itoa(k)
 		BenchmarkTree.Put([]byte(key), []byte(key))
@@ -547,7 +544,7 @@ func BenchmarkTreeGet(b *testing.B) {
 
 func BenchmarkTreePutAndForEach(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		BenchmarkTree = New()
+		BenchmarkTree, _ = New()
 
 		for k := benchmarkKeyNum; k > 0; k-- {
 			key := strconv.Itoa(k)
