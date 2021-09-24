@@ -254,7 +254,7 @@ func (t *BPTree) putIntoNewRoot(key []byte, l, r *node) {
 }
 
 // putIntoParentAndSplit puts key in the parent, splits the node and returns the splitten
-// nodes with all fixed ponters.
+// nodes with all fixed pointers.
 func (t *BPTree) putIntoParentAndSplit(parent *node, k []byte, l, r *node) ([]byte, *node, *node) {
 	insertPos := 0
 	for insertPos < parent.keyNum {
@@ -426,8 +426,9 @@ func (t *BPTree) deleteAtLeafAndRebalance(n *node, key []byte) ([]byte, bool) {
 	n.deleteAt(keyPos, keyPos)
 
 	if n.parent == nil {
-		// remove from root (as leaf)
+		// deletion from the root 				
 		if n.keyNum == 0 {
+			// remove the root 
 			t.root = nil
 		}
 
@@ -483,7 +484,7 @@ func findLeftmostKey(n *node) []byte {
 func (t *BPTree) rebalanceFromLeafNode(n *node) {
 	parent := n.parent
 
-	pointerPositionInParent := n.parent.pointerPositionOf(n)
+	pointerPositionInParent := parent.pointerPositionOf(n)
 	keyPositionInParent := pointerPositionInParent - 1
 	if keyPositionInParent < 0 {
 		keyPositionInParent = 0
