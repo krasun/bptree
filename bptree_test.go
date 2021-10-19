@@ -230,6 +230,9 @@ func TestKeyOrder(t *testing.T) {
 		keys = append(keys, key[0])
 	})
 
+	if len(keys) == 0 {
+		t.Fatal("keys are empty")
+	}	
 	isSorted := sort.SliceIsSorted(keys, func(i, j int) bool {
 		return keys[i] < keys[j]
 	})
